@@ -1,0 +1,4 @@
+steamlit
+torch
+Pillow
+streamlit_drawable_canvas
