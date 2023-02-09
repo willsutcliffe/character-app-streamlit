@@ -1,4 +1,4 @@
--f https://download.pytorch.org/whl/cpu
+-f https://download.pytorch.org/whl/torch_stable.html
 streamlit
 torch==1.13.1+cpu
 Pillow
