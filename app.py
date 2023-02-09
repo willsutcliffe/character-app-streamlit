@@ -60,8 +60,7 @@ else:
         path = "./assets/cyrillic_pytorch.pth"
 
 
-model.to(device)
-model.load_state_dict(torch.load(path))
+model.load_state_dict(torch.load(path, map_location="cuda:0"))
 model.eval()
 
 
