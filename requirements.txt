@@ -1,4 +1,5 @@
+-f https://download.pytorch.org/whl/cpu
 streamlit
-torch
+torch=1.13.1+cpu
 Pillow
 streamlit_drawable_canvas
