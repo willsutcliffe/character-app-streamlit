@@ -25,6 +25,7 @@ page_title = "Character Classifier App",
 page_icon = ":pencil:",
 )
 
+
 hide_streamlit_style = """
                        <style>
                        #MainMenu {visibility: hidden;}
@@ -42,26 +43,46 @@ if option_lang == 'Japanese':
     if option_jap == "Hiragana":
         model = Net(75)
         path = "./assets/hirigana_pytorch.pth" 
+        examples_path = "./examples/hiragana/"
         with open('assets/labels.pkl', 'rb') as f:
             labels = pickle.load(f)
     else:
         model = Net(46)
         path = "./assets/katakana_pytorch.pth"
+        examples_path = "./examples/katakana/"
         with open('assets/katakana_labels.pkl', 'rb') as f:
             labels = pickle.load(f)
 else:
     option_rus = st.selectbox("Select upper or lower case", ("Upper", "Lower"))
+    option_aug = st.selectbox("Select model with or without data augmentation:", ("with", "without"))
     size = 64
 
-    if option_rus == "Upper case letter":
-        model = Net(31)
-        path = "./assets/CYRILLIC_pytorch_aug.pth"
-        labels = ['Ё', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ы', 'Э', 'Ю', 'Я']
+    if option_rus == "Upper":
+        if option_aug == "with":
+            model = Net(31)
+            path = "./assets/CYRILLIC_pytorch_aug.pth"
+            examples_path = "./examples/cyrillic/large/"
+            labels = ['Ё', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ы', 'Э', 'Ю', 'Я']
+        else:
+            model = Net(33)
+            path = "./assets/CYRILLIC_pytorch.pth"
+            examples_path = "./examples/cyrillic/large/"
+            labels = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й',
+          'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф',
+          'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я']
     else:
-        model = Net(33)
-        path = "./assets/cyrillic_pytorch_aug.pth"
-        labels = ['Ё', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я']
-
+        if option_aug == "with":
+            model = Net(33)
+            path = "./assets/cyrillic_pytorch_aug.pth"
+            examples_path = "./examples/cyrillic/small/"
+            labels = ['Ё', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я']
+        else:
+            model = Net(33)
+            path = "./assets/cyrillic_pytorch.pth"
+            examples_path = "./examples/cyrillic/small/"
+            labels = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й',
+          'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф',
+          'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я']
 
 model.load_state_dict(torch.load(path, map_location="cpu"))
 model.eval()
@@ -77,7 +98,6 @@ data_aug_transform = transforms.Compose([
 
 col1, col2 = st.columns([3,2],gap="small")
 with col1:
-    sentence = st.text(f'Draw the character {random.choice(labels)}')
     stroke_width = st.sidebar.slider("Stroke width: ", 1, 40, 10)
 
     canvas_result = st_canvas(
@@ -91,11 +111,29 @@ with col1:
     )
     predict = st.button("Predict")
 with col2:
-    sentence = st.text('Do you want to see an example?')
-    img = Image.open('0_0_1378_20190729081444.png')
-    img = np.array(img)
-    img = Image.fromarray(255 - img)
-    st.image(img, caption=None, width=100)
+    examples_option = st.selectbox("Show examples:", ("On", "Off"))
+    generate = st.button("Generate task:") 
+    if generate:
+        if option_lang == "Russian":
+            st.session_state.choice = random.choice(labels)
+        else:
+            st.session_state.choice = random.choice(list(labels.values()))
+
+    try:
+        if 'choice' in st.session_state:
+            choice = st.session_state.choice
+            sentence = st.text(f'Draw the character {choice}')
+            if examples_option == "On":
+                img = Image.open(f'{examples_path}/{choice}/0.png')
+                img = np.array(img)
+
+                if option_lang == "Russian":
+                    img = Image.fromarray(255 - img)
+                else:
+                    img = Image.fromarray(img)
+                st.image(img, caption=None, width=120)
+    except:
+         st.write("Please generate a new exercise.")
 
 def get_prediction(image):
     if option_lang == "Russian":
@@ -104,7 +142,10 @@ def get_prediction(image):
     else:
         image = Image.fromarray(image)
         image = image.resize((size,size))
-        image = np.array(image)[:,:,:3]/255.
+        if option_lang == "Russian":
+            image = 1-np.array(image)[:,:,:3]/255.
+        else:
+            image = np.array(image)[:,:,:3]/255.
         image = np.mean(image,axis=2)
         image = torch.tensor(image,dtype=torch.float)
         image = torch.unsqueeze(image, dim=0)
@@ -113,10 +154,13 @@ def get_prediction(image):
     outputs =  model(image)
     pred = torch.argmax(outputs, dim=1) 
     label = labels[int(pred)]
+    indices  =  torch.topk(outputs.flatten(), 3).indices
+    st.text("Top prediction : {}".format(label))    
+    st.text("Was my prediction correct?")    
+
+    st.text(f"If not the next top 2 predictions : {labels[int(indices[1])]}, {labels[int(indices[2])]}")    
     return label, image
 
 
 if canvas_result.image_data is not None and predict:
     label, img = get_prediction(canvas_result.image_data)
-    st.text("Prediction : {}".format(label))    
-    st.text("Was my prediction correct?")    
