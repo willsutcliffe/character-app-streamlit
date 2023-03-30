@@ -42,7 +42,7 @@ if option_lang == 'Japanese':
 else:
     option_rus = st.selectbox("Select upper or lower case", ("Upper", "Lower"))
 
-    if option_rus == "Upper case letter":
+    if option_rus == "Upper":
         examples_path = "./examples/cyrillic/large/"
         labels = ['Ё', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ы', 'Э', 'Ю', 'Я']
     else:
